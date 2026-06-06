@@ -30,4 +30,14 @@ public class QuestionService {
     public Question create(Question question) {
         return questionRepository.save(question);
     }
+
+    public Question findById(UUID id) {
+        return questionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Question not found"));
+    }
+
+    public void delete(UUID id) {
+        Question question = findById(id);
+        questionRepository.delete(question);
+    }
 }

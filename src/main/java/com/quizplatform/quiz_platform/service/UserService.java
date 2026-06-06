@@ -27,4 +27,22 @@ public class UserService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
+
+    public User create(User user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new RuntimeException("Email already registered");
+        }
+        return userRepository.save(user);
+    }
+
+    public User update(UUID id, String name) {
+        User user = findById(id);
+        user.setName(name);
+        return userRepository.save(user);
+    }
+
+    public void delete(UUID id) {
+        User user = findById(id);
+        userRepository.delete(user);
+    }
 }

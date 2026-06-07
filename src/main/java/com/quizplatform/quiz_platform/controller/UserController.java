@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,7 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
     @GetMapping
     public ResponseEntity<List<UserResponseDto>> findAll() {
@@ -51,7 +53,7 @@ public class UserController {
         User user = new User();
         user.setName(requestDto.getName());
         user.setEmail(requestDto.getEmail());
-        user.setPassword(requestDto.getPassword());
+        user.setPassword(passwordEncoder.encode(requestDto.getPassword()));
         user.setRole(Role.PLAYER);
         user.setCreatedAt(LocalDateTime.now());
         User saved = userService.create(user);

@@ -240,7 +240,7 @@ sequenceDiagram
     Note over FE,DB: Subsequent requests
 
     User->>FE: Click "Play Quiz"
-    FE->>Filter: GET /api/questions/category/{id}<br/>Authorization: Bearer &lt;token&gt;
+    FE->>Filter: GET /api/questions/category/{id} (Authorization: Bearer token)
     Filter->>Filter: Extract & validate JWT
     Filter->>Sec: Set SecurityContext (authenticated)
     Sec->>Ctrl: Forward request

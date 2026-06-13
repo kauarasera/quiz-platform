@@ -10,5 +10,7 @@ import java.util.UUID;
 @Repository
 public interface AnswerRepository extends JpaRepository<Answer, UUID> {
 
+    boolean existsByTextAndQuestionId(String text, UUID questionId);
+
     List<Answer> findByQuestionId(UUID questionId);
 }

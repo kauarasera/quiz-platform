@@ -10,5 +10,7 @@ import java.util.UUID;
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, UUID> {
 
+    boolean existsByTextAndCategoryId(String text, UUID categoryId);
+
     List<Question> findByCategoryId(UUID categoryId);
 }

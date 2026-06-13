@@ -31,37 +31,37 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            try {
+                final String token = authHeader.substring(7);
+                final String email = jwtService.extractEmail(token);
 
-        final String token = authHeader.substring(7);
-        final String email = jwtService.extractEmail(token);
+                if (email != null &&
+                        SecurityContextHolder.getContext().getAuthentication() == null) {
 
-        if (email != null &&
-                SecurityContextHolder.getContext().getAuthentication() == null) {
+                    userRepository.findByEmail(email).ifPresent(user -> {
+                        if (jwtService.isTokenValid(token, email)) {
+                            var authority = new SimpleGrantedAuthority(
+                                    "ROLE_" + user.getRole().name());
 
-            userRepository.findByEmail(email).ifPresent(user -> {
-                if (jwtService.isTokenValid(token, email)) {
-                    var authority = new SimpleGrantedAuthority(
-                            "ROLE_" + user.getRole().name());
+                            var authToken = new UsernamePasswordAuthenticationToken(
+                                    user.getEmail(),
+                                    null,
+                                    List.of(authority));
 
-                    var authToken = new UsernamePasswordAuthenticationToken(
-                            user.getEmail(),
-                            null,
-                            List.of(authority));
+                            authToken.setDetails(
+                                    new WebAuthenticationDetailsSource()
+                                            .buildDetails(request));
 
-                    authToken.setDetails(
-                            new WebAuthenticationDetailsSource()
-                                    .buildDetails(request));
-
-                    SecurityContextHolder.getContext()
-                            .setAuthentication(authToken);
+                            SecurityContextHolder.getContext()
+                                    .setAuthentication(authToken);
+                        }
+                    });
                 }
-            });
+            } catch (Exception e) {
+                logger.warn("Invalid JWT token: " + e.getMessage());
+            }
         }
-
         filterChain.doFilter(request, response);
     }
 }

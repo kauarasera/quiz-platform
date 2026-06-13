@@ -94,34 +94,41 @@ This project was built as part of a hands-on, mentor-guided learning path focuse
 The backend follows a classic **layered (monolithic) architecture** — chosen deliberately over microservices to keep the project focused, testable, and appropriate for its scope.
 
 ```mermaid
-flowchart TB
-    subgraph Client["🖥️ Frontend (React + TS)"]
-        UI[Pages: Login, Home, Quiz, Result]
-        CTX[AuthContext]
-        API[Axios + JWT Interceptor]
-    end
-
-    subgraph Backend["⚙️ Backend (Spring Boot)"]
+flowchart LR
+    subgraph FE[" 🖥️ FRONTEND — React + TypeScript "]
         direction TB
-        FILTER[JwtAuthFilter]
-        CTRL[Controllers<br/>Auth / User / Category / Question / Answer]
-        SVC[Services<br/>Business Logic + Validation]
-        REPO[Repositories<br/>Spring Data JPA]
-        SEC[SecurityConfig]
-        GEH[GlobalExceptionHandler]
+        UI["📄 Pages\nLogin · Home · Quiz · Result"]
+        CTX["🔐 AuthContext\n(global auth state)"]
+        API["🌐 Axios Client\n+ JWT Interceptor"]
+        UI --> CTX --> API
     end
-
-    DB[(PostgreSQL)]
-
-    UI --> CTX --> API
-    API -->|"Authorization: Bearer &lt;token&gt;"| FILTER
-    FILTER --> SEC
-    SEC --> CTRL
-    CTRL --> SVC
-    SVC --> REPO
+ 
+    subgraph BE[" ⚙️ BACKEND — Spring Boot "]
+        direction TB
+        FILTER["🛂 JwtAuthFilter"]
+        SEC["🔒 SecurityConfig"]
+        CTRL["📬 Controllers\nAuth · User · Category · Question · Answer"]
+        SVC["🧠 Services\nBusiness Logic & Validation"]
+        REPO["🗄️ Repositories\nSpring Data JPA"]
+        GEH["⚠️ GlobalExceptionHandler"]
+ 
+        FILTER --> SEC --> CTRL --> SVC --> REPO
+        CTRL -. throws .-> GEH
+    end
+ 
+    DB[("🐘 PostgreSQL")]
+ 
+    API ==>|"Authorization: Bearer token"| FILTER
     REPO --> DB
-    CTRL -.exceptions.-> GEH
-    GEH -.JSON error.-> API
+    GEH -.->|"JSON error response"| API
+ 
+    classDef fe fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f1f5f9
+    classDef be fill:#1e293b,stroke:#34d399,stroke-width:2px,color:#f1f5f9
+    classDef db fill:#1e293b,stroke:#fbbf24,stroke-width:2px,color:#f1f5f9
+ 
+    class UI,CTX,API fe
+    class FILTER,SEC,CTRL,SVC,REPO,GEH be
+    class DB db
 ```
 
 ### Layer Responsibilities

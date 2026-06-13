@@ -93,43 +93,7 @@ This project was built as part of a hands-on, mentor-guided learning path focuse
 
 The backend follows a classic **layered (monolithic) architecture** — chosen deliberately over microservices to keep the project focused, testable, and appropriate for its scope.
 
-```mermaid
-flowchart LR
-    subgraph FE[" 🖥️ FRONTEND — React + TypeScript "]
-        direction TB
-        UI["📄 Pages\nLogin · Home · Quiz · Result"]
-        CTX["🔐 AuthContext\n(global auth state)"]
-        API["🌐 Axios Client\n+ JWT Interceptor"]
-        UI --> CTX --> API
-    end
- 
-    subgraph BE[" ⚙️ BACKEND — Spring Boot "]
-        direction TB
-        FILTER["🛂 JwtAuthFilter"]
-        SEC["🔒 SecurityConfig"]
-        CTRL["📬 Controllers\nAuth · User · Category · Question · Answer"]
-        SVC["🧠 Services\nBusiness Logic & Validation"]
-        REPO["🗄️ Repositories\nSpring Data JPA"]
-        GEH["⚠️ GlobalExceptionHandler"]
- 
-        FILTER --> SEC --> CTRL --> SVC --> REPO
-        CTRL -. throws .-> GEH
-    end
- 
-    DB[("🐘 PostgreSQL")]
- 
-    API ==>|"Authorization: Bearer token"| FILTER
-    REPO --> DB
-    GEH -.->|"JSON error response"| API
- 
-    classDef fe fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f1f5f9
-    classDef be fill:#1e293b,stroke:#34d399,stroke-width:2px,color:#f1f5f9
-    classDef db fill:#1e293b,stroke:#fbbf24,stroke-width:2px,color:#f1f5f9
- 
-    class UI,CTX,API fe
-    class FILTER,SEC,CTRL,SVC,REPO,GEH be
-    class DB db
-```
+![Architecture](docs/diagrams/architecture.png)
 
 ### Layer Responsibilities
 
@@ -144,61 +108,10 @@ flowchart LR
 
 ---
 
+
 ## 🗄 Database Schema (ER Diagram)
 
-```mermaid
-erDiagram
-    CATEGORY ||--o{ QUESTION : has
-    QUESTION ||--o{ ANSWER : has
-    USER ||--o{ QUIZ_ATTEMPT : makes
-    QUIZ_ATTEMPT ||--o{ ATTEMPT_ANSWER : contains
-    QUESTION ||--o{ ATTEMPT_ANSWER : "referenced by"
-    ANSWER ||--o{ ATTEMPT_ANSWER : "referenced by"
-
-    CATEGORY {
-        UUID id PK
-        string name
-        string description
-    }
-
-    QUESTION {
-        UUID id PK
-        string text
-        int orderNumber
-        UUID category_id FK
-    }
-
-    ANSWER {
-        UUID id PK
-        string text
-        boolean isCorrect
-        UUID question_id FK
-    }
-
-    USER {
-        UUID id PK
-        string name
-        string email
-        string password
-        enum role
-        datetime createdAt
-    }
-
-    QUIZ_ATTEMPT {
-        UUID id PK
-        UUID user_id FK
-        UUID category_id FK
-        int score
-        datetime createdAt
-    }
-
-    ATTEMPT_ANSWER {
-        UUID id PK
-        UUID attempt_id FK
-        UUID question_id FK
-        UUID answer_id FK
-    }
-```
+![ER Diagram](docs/diagrams/er-diagram.png)
 
 ### Business Rules Summary
 
@@ -219,35 +132,7 @@ erDiagram
 
 ## 🔐 Authentication Flow (JWT)
 
-```mermaid
-sequenceDiagram
-    actor User
-    participant FE as React Frontend
-    participant Filter as JwtAuthFilter
-    participant Sec as SecurityConfig
-    participant Ctrl as Controller
-    participant DB as PostgreSQL
-
-    User->>FE: Enter email + password
-    FE->>Ctrl: POST /api/auth/login
-    Ctrl->>DB: Find user by email
-    DB-->>Ctrl: User (hashed password)
-    Ctrl->>Ctrl: BCrypt.matches(password, hash)
-    Ctrl->>Ctrl: JwtService.generateToken(email)
-    Ctrl-->>FE: 200 OK { token, name, email, role }
-    FE->>FE: Store token in localStorage
-
-    Note over FE,DB: Subsequent requests
-
-    User->>FE: Click "Play Quiz"
-    FE->>Filter: GET /api/questions/category/{id} (Authorization: Bearer token)
-    Filter->>Filter: Extract & validate JWT
-    Filter->>Sec: Set SecurityContext (authenticated)
-    Sec->>Ctrl: Forward request
-    Ctrl->>DB: Query questions
-    DB-->>Ctrl: Questions
-    Ctrl-->>FE: 200 OK [questions]
-```
+![Auth-flow](docs/diagrams/auth-flow.png)
 
 ### Security Configuration Overview
 
